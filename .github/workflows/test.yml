@@ -1,0 +1,46 @@
+name: Test Postgis Setup
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    container: ubuntu
+    strategy:
+      matrix:
+        name:
+          # image: https://github.com/postgis/docker-postgis
+          # hier ändert sich nur die postgres version. postGIS version ist jeweils 3.3 / 3.4
+          - 11-3.3-alpine
+          - 12-3.4-alpine
+          - 13-3.4-alpine
+          - 14-3.4-alpine
+          - 15-3.4-alpine
+          - 16-3.4-alpine
+    services:
+      postgres:
+        image: postgis/postgis:${{ matrix.name }}
+        env:
+          POSTGRES_DB: test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: postgres
+      PGUSER: test
+      PGPASSWORD: test
+    steps:
+      - run: apt-get update && apt-get install -y postgresql-client
+      - run: |
+          psql -c "alter role $PGUSER with SUPERUSER;" \
+               -c "create schema if not exists postgis;" \
+               -c "create extension if not exists postgis with schema postgis;" \
+               -c "alter database test set search_path to \"\$user\", public, postgis;"
+      - run: |
+          psql -c "grant all on postgis.geometry_columns to public;" \
+               -c "grant all on postgis.spatial_ref_sys to public;"
+        name: This should error
+        continue-on-error: true
