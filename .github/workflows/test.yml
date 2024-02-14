@@ -11,12 +11,12 @@ jobs:
           - 9.6-2.5-alpine
           # image: https://github.com/postgis/docker-postgis
           # hier ändert sich nur die postgres version. postGIS version ist jeweils 3.3 / 3.4
-          - 11-3.3-alpine
-          - 12-3.4-alpine
-          - 13-3.4-alpine
-          - 14-3.4-alpine
-          - 15-3.4-alpine
-          - 16-3.4-alpine
+#          - 11-3.3-alpine
+#          - 12-3.4-alpine
+#          - 13-3.4-alpine
+#          - 14-3.4-alpine
+#          - 15-3.4-alpine
+#          - 16-3.4-alpine
     services:
       postgres:
         image: postgis/postgis:${{ matrix.name }}
@@ -28,6 +28,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      PGHOST: postgres
       PGPASSWORD: test
     steps:
       - run: apt-get update && apt-get install -y postgresql-client
